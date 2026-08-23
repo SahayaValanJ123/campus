@@ -29,13 +29,16 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: Install NPM Dependencies
-        run: npm install
+      - name: Install NPM Dependencies & Grant Permissions
+        run: |
+          npm install
+          chmod -R +x node_modules/.bin || true
 
       - name: Add & Sync Capacitor Android Platform
         run: |
-          npx @capacitor/cli add android || true
-          npx @capacitor/cli sync android
+          chmod -R +x node_modules/.bin || true
+          npx cap add android || true
+          npx cap sync android
 
       - name: Grant Execute Permission for Gradlew
         run: chmod +x android/gradlew || true
