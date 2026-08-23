@@ -1,10 +1,11 @@
 {
-  "name": "vv-campuspulse",
+  "name": "campus-sphere",
   "version": "1.0.0",
-  "description": "VV CampusPulse - Exclusive All-in-One College Platform App",
+  "description": "CampusSphere - Multi-College Student Platform App",
   "main": "index.html",
   "scripts": {
-    "build:android": "npx cap copy android && cd android && ./gradlew assembleDebug"
+    "build": "node build.js",
+    "build:android": "npm run build && npx cap sync android && cd android && ./gradlew assembleDebug"
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",

@@ -34,6 +34,9 @@ jobs:
           npm install
           chmod -R +x node_modules/.bin || true
 
+      - name: Build Web App Bundle
+        run: npm run build
+
       - name: Add & Sync Capacitor Android Platform
         run: |
           chmod -R +x node_modules/.bin || true
