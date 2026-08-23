@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>CampusSphere - Multi-College Student Platform</title>
+
+  <!-- PWA & Mobile Settings -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0F172A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Design System CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Gateway Lock Screen & Student Verification Modal -->
+  <div id="gatewayModal" class="gateway-overlay">
+    <div class="gateway-card" style="max-width: 440px;">
+      <div class="gateway-logo">🏫</div>
+      <h2 class="gateway-title">CampusSphere</h2>
+      <p class="gateway-subtitle">Connect to your college student server & register your student identity.</p>
+      
+      <div style="text-align: left; margin-bottom: 12px;">
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">1. SEARCH / ENTER COLLEGE SERVER CODE</label>
+        <input type="text" id="inviteCodeInput" class="form-input" placeholder="e.g. VV2026 or CEG4401" value="VV2026" style="text-align: left; text-transform: uppercase;">
+      </div>
+
+      <div style="text-align: left; margin-bottom: 12px;">
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">2. FULL NAME & ROLL NUMBER</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="studentNameInput" class="form-input" placeholder="Your Name" value="Suresh Kumar" style="flex: 1; text-align: left; text-transform: none; letter-spacing: normal;">
+          <input type="text" id="rollNoInput" class="form-input" placeholder="Roll / Reg No" value="953422106042" style="flex: 1; text-align: left; text-transform: none; letter-spacing: normal;">
+        </div>
+      </div>
+
+      <div style="text-align: left; margin-bottom: 16px;">
+        <label style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 4px;">3. DEPARTMENT & SEMESTER</label>
+        <div style="display: flex; gap: 8px;">
+          <select id="userDeptSelect" class="form-input" style="flex: 1; text-align: left; text-transform: none; letter-spacing: normal;">
+            <option value="ECE" selected>ECE - Electronics & Comm</option>
+            <option value="CSE">CSE - Computer Science</option>
+            <option value="MECH">MECH - Mechanical</option>
+            <option value="EEE">EEE - Electrical & Electronics</option>
+            <option value="CIVIL">CIVIL - Civil Engg</option>
+            <option value="IT">IT - Information Tech</option>
+          </select>
+          <select id="userSemSelect" class="form-input" style="width: 100px; text-align: left; text-transform: none; letter-spacing: normal;">
+            <option value="3" selected>Sem 3</option>
+            <option value="1">Sem 1</option>
+            <option value="2">Sem 2</option>
+            <option value="4">Sem 4</option>
+            <option value="5">Sem 5</option>
+            <option value="6">Sem 6</option>
+            <option value="7">Sem 7</option>
+            <option value="8">Sem 8</option>
+          </select>
+        </div>
+      </div>
+      
+      <div id="gatewayError" style="display: none; color: var(--accent-rose); font-size: 0.8rem; margin-bottom: 12px; font-weight: 700;">
+        ❌ Invalid Server Code. Check server code with your Dept Mod.
+      </div>
+
+      <button id="btnUnlock" class="btn-primary">Join Campus Server ➔</button>
+    </div>
+  </div>
+
+  <!-- Main Mobile App Shell -->
+  <div class="app-shell">
+
+    <!-- App Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-logo">CS</div>
+        <div class="brand-text">
+          <h1 id="headerServerName">CampusSphere</h1>
+          <p id="headerUserInfo">VV College Server • ECE</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button id="btnAdminHandover" class="btn-mod-queue" style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3);" title="Transfer Server Admin Rights">
+          <span>👑 Admin Handover</span>
+        </button>
+        <button id="btnModQueue" class="btn-mod-queue" style="display: none;">
+          <span>🛡️ Mod Queue</span>
+          <span id="modBadgeCount" style="background: #000000; color: #FFFFFF; border-radius: 50%; padding: 1px 6px; font-size: 0.7rem;">0</span>
+        </button>
+        <div id="roleBadge" class="role-badge" title="Tap to toggle student/mod role">👨‍🎓 Student</div>
+      </div>
+    </header>
+
+    <!-- Department Selector Strip -->
+    <div class="dept-bar">
+      <button class="dept-pill active" data-dept="ECE">⚡ ECE</button>
+      <button class="dept-pill" data-dept="CSE">💻 CSE</button>
+      <button class="dept-pill" data-dept="MECH">⚙️ MECH</button>
+      <button class="dept-pill" data-dept="EEE">🔌 EEE</button>
+      <button class="dept-pill" data-dept="CIVIL">🏗️ CIVIL</button>
+      <button class="dept-pill" data-dept="IT">🌐 IT</button>
+    </div>
+
+    <!-- Main Views Area -->
+    <div class="view-container">
+
+      <!-- TAB 1: EduVault Academic Library (Notes, PYQs, PDFs, Formula Sheets) -->
+      <div id="tab-academic" class="tab-view active">
+        <div class="section-header">
+          <h2>📚 EduVault Academic Library</h2>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Verified Study Hub</span>
+        </div>
+
+        <!-- Material Filter Category Tabs (PYQs, Notes, PDF Notes, Formula Sheets) -->
+        <div class="material-type-tabs" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px;">
+          <button class="mat-type-btn active" data-type="ALL" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-primary); cursor: pointer;">All Types</button>
+          <button class="mat-type-btn" data-type="PYQ" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-secondary); cursor: pointer;">📄 Question Papers (PYQs)</button>
+          <button class="mat-type-btn" data-type="Notes" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-secondary); cursor: pointer;">📝 Handwritten Notes</button>
+          <button class="mat-type-btn" data-type="PDF Notes" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-secondary); cursor: pointer;">📚 PDF Notes</button>
+          <button class="mat-type-btn" data-type="Formula Sheet" style="padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-secondary); cursor: pointer;">⚡ Formula Sheets</button>
+        </div>
+
+        <!-- Semester Selector -->
+        <div class="sem-selector-grid">
+          <button class="sem-btn" data-sem="1">Sem 1</button>
+          <button class="sem-btn" data-sem="2">Sem 2</button>
+          <button class="sem-btn active" data-sem="3">Sem 3</button>
+          <button class="sem-btn" data-sem="4">Sem 4</button>
+          <button class="sem-btn" data-sem="5">Sem 5</button>
+          <button class="sem-btn" data-sem="6">Sem 6</button>
+          <button class="sem-btn" data-sem="7">Sem 7</button>
+          <button class="sem-btn" data-sem="8">Sem 8</button>
+        </div>
+
+        <!-- FAB Upload Button -->
+        <button id="btnFabUpload" class="btn-fab-upload">
+          <span>📤</span> Upload Notes / PYQ
+        </button>
+
+        <!-- Dynamic Subjects & Materials Container -->
+        <div id="subjectsContainer">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- TAB 2: Dept Bazaar (Department Scoped Marketplace) -->
+      <div id="tab-marketplace" class="tab-view">
+        <div class="section-header">
+          <h2>🛍️ Dept Bazaar</h2>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button id="btnToggleDeptScope" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; cursor: pointer;">⚡ Only My Dept (ECE)</button>
+            <button id="btnPostMarket" class="btn-primary" style="padding: 6px 12px; font-size: 0.78rem;">+ Post Item</button>
+          </div>
+        </div>
+
+        <div id="marketplaceGrid" class="marketplace-grid">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- TAB 3: Campus Connect (Community Feed & Live Polls) -->
+      <div id="tab-connect" class="tab-view">
+        <div class="section-header">
+          <h2>💬 Campus Connect</h2>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button id="btnToggleConnectDeptScope" style="padding: 4px 10px; font-size: 0.72rem; border-radius: 12px; background: rgba(56, 189, 248, 0.15); color: #38BDF8; border: 1px solid rgba(56, 189, 248, 0.3); font-weight: 700; cursor: pointer;">⚡ Only My Dept (ECE)</button>
+            <button id="btnNewPollPost" class="btn-primary" style="padding: 6px 12px; font-size: 0.78rem;">+ Create Poll / Post</button>
+          </div>
+        </div>
+
+        <div id="connectFeedList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- TAB 4: College Events & Culturals -->
+      <div id="tab-events" class="tab-view">
+        <div class="section-header">
+          <h2>📅 Events & Symposiums</h2>
+        </div>
+
+        <div id="eventsList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- TAB 5: Staff Official Announcements (Read Only) -->
+      <div id="tab-staff" class="tab-view">
+        <div class="section-header">
+          <h2>📢 Staff Circulars</h2>
+          <span style="font-size: 0.72rem; color: var(--accent-sky); font-weight: 700;">Official Read-Only</span>
+        </div>
+
+        <div id="announcementsList">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+      <div class="nav-item active" data-tab="academic">
+        <span class="icon">📚</span>
+        <span>EduVault</span>
+      </div>
+      <div class="nav-item" data-tab="marketplace">
+        <span class="icon">🛍️</span>
+        <span>Dept Bazaar</span>
+      </div>
+      <div class="nav-item" data-tab="connect">
+        <span class="icon">💬</span>
+        <span>Connect</span>
+      </div>
+      <div class="nav-item" data-tab="events">
+        <span class="icon">📅</span>
+        <span>Events</span>
+      </div>
+      <div class="nav-item" data-tab="staff">
+        <span class="icon">📢</span>
+        <span>Notices</span>
+      </div>
+    </nav>
+
+  </div>
+
+  <!-- Moderator Pending Queue Drawer -->
+  <div id="modDrawer" class="mod-drawer">
+    <div class="mod-content">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--accent-amber);">🛡️ Dept Moderator Approval Queue</h3>
+        <button id="btnCloseModDrawer" style="background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer;">✕</button>
+      </div>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">Approve study materials submitted by students before they appear in EduVault.</p>
+      
+      <div id="modPendingList">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Ownership Handover Modal -->
+  <div id="modalAdminHandover" class="mod-drawer">
+    <div class="mod-content" style="max-width: 420px; border-radius: var(--radius-lg) 0 0 var(--radius-lg);">
+      <h3 style="font-size: 1.1rem; font-weight: 800; color: #F59E0B; margin-bottom: 12px;">👑 Handover Server Admin Rights</h3>
+      <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 16px;">Graduating or passing responsibility? Transfer server admin ownership to a trusted junior student rep.</p>
+      <form id="formAdminHandover">
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">New Admin Name *</label>
+          <input type="text" id="hoName" class="form-input" placeholder="e.g. Karthik (ECE 2nd Yr)" required style="text-align: left; text-transform: none; letter-spacing: normal;">
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">New Admin Roll Number *</label>
+          <input type="text" id="hoRoll" class="form-input" placeholder="e.g. 953423106012" required style="text-align: left; text-transform: none; letter-spacing: normal;">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" id="btnCancelHandover" style="flex: 1; padding: 12px; background: none; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; font-weight: 700; cursor: pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" style="flex: 1; background: #F59E0B;">Transfer Rights ➔</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Upload Study Material (EduVault) -->
+  <div id="modalUpload" class="mod-drawer">
+    <div class="mod-content" style="max-width: 420px; border-radius: var(--radius-lg) 0 0 var(--radius-lg);">
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;">Upload Study Material to EduVault</h3>
+      <form id="formUpload">
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Material Title *</label>
+          <input type="text" id="upTitle" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. Unit 3 Sequential Circuits Handwritten Notes" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Material Category *</label>
+          <select id="upType" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;">
+            <option value="PYQ">Previous Year Question Paper (PYQ)</option>
+            <option value="Notes">Handwritten Notes</option>
+            <option value="PDF Notes">PDF Notes & Textbook PDF</option>
+            <option value="Formula Sheet">Formula Sheet / Question Bank</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Uploader Name & Roll No *</label>
+          <input type="text" id="upAuthor" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. Suresh (ECE 3rd Yr • 953422106042)" required>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" id="btnCancelUpload" style="flex: 1; padding: 12px; background: none; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; font-weight: 700; cursor: pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" style="flex: 1;">Submit Material ➔</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Post Marketplace Item (Dept Bazaar) -->
+  <div id="modalMarket" class="mod-drawer">
+    <div class="mod-content" style="max-width: 420px; border-radius: var(--radius-lg) 0 0 var(--radius-lg);">
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;">Post Item in Dept Bazaar</h3>
+      <form id="formMarket">
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Item Title *</label>
+          <input type="text" id="mkTitle" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. Digital Electronics Book by Morris Mano" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Price (₹) *</label>
+          <input type="number" id="mkPrice" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="250" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Target Department *</label>
+          <select id="mkDeptSelect" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;">
+            <option value="ECE">ECE</option>
+            <option value="CSE">CSE</option>
+            <option value="MECH">MECH</option>
+            <option value="EEE">EEE</option>
+            <option value="CIVIL">CIVIL</option>
+            <option value="IT">IT</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Seller Name & Roll No *</label>
+          <input type="text" id="mkSellerName" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. Vignesh (ECE • Reg #953422106042)" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">WhatsApp Contact Number *</label>
+          <input type="tel" id="mkSellerPhone" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. 9876543210" required>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" id="btnCancelMarket" style="flex: 1; padding: 12px; background: none; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; font-weight: 700; cursor: pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" style="flex: 1;">Post to Dept Bazaar ➔</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Create Poll or Question (Campus Connect) -->
+  <div id="modalPollPost" class="mod-drawer">
+    <div class="mod-content" style="max-width: 420px; border-radius: var(--radius-lg) 0 0 var(--radius-lg);">
+      <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 16px;">Create Live Poll or Post</h3>
+      <form id="formPollPost">
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Post Question / Poll Title *</label>
+          <input type="text" id="pollTitleInput" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. Which elective subject is best for Sem 4?" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Poll Option 1 *</label>
+          <input type="text" id="pollOpt1Input" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="Option A (e.g. VLSI Design)" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Poll Option 2 *</label>
+          <input type="text" id="pollOpt2Input" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="Option B (e.g. Embedded Systems)" required>
+        </div>
+
+        <div style="margin-bottom: 14px;">
+          <label style="font-size: 0.8rem; font-weight: 600; display: block; margin-bottom: 4px;">Poster Name & Dept *</label>
+          <input type="text" id="pollAuthorInput" class="form-input" style="text-align: left; text-transform: none; letter-spacing: normal;" placeholder="e.g. Rahul (ECE)" required>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" id="btnCancelPollPost" style="flex: 1; padding: 12px; background: none; border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; font-weight: 700; cursor: pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" style="flex: 1;">Publish Poll ➔</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Core App Engine -->
+  <script src="js/app.js"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "appId": "com.vvcollege.campuspulse",
+  "appName": "VV CampusPulse",
+  "webDir": ".",
+  "bundledWebRuntime": false
+}
